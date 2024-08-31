@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -70,4 +71,20 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+/* Sidebar.css */
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: -400px; /* Start off-screen */
+  width: 400px;
+  height: 100%;
+  background-color: #f1f1f1;
+  transition: 0.3s ease;
+  z-index: 10000; /* Ensure it's above other content */
+}
+
+.sidebar.open {
+  right: 0; /* Slide into view */
 }
