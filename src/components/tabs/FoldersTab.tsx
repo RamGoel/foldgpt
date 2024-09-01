@@ -16,6 +16,7 @@ import { toggleSidebar } from '../../utils'
 import FolderOptions from '../popups/OptionsPopup'
 import OptionsPopup from '../popups/OptionsPopup'
 import TooltipProvider from '../TooltipProvider'
+import { useFilesOrFolders } from '../../hooks/useFilesOrFolders'
 
 interface FileSystemItem {
     id: string
@@ -25,34 +26,10 @@ interface FileSystemItem {
     isExpanded?: boolean
 }
 
-const initialData: FileSystemItem[] = [
-    {
-        id: '1',
-        name: 'Documents',
-        type: 'folder',
-        isExpanded: false,
-        children: [
-            { id: '2', name: 'Report.docx', type: 'file' },
-            {
-                id: '3',
-                name: 'Projects',
-                type: 'folder',
-                isExpanded: false,
-                children: [{ id: '4', name: 'Project1.txt', type: 'file' }],
-            },
-        ],
-    },
-    {
-        id: '5',
-        name: 'Images',
-        type: 'folder',
-        isExpanded: false,
-        children: [],
-    },
-]
+
 
 const FoldersTab: React.FC = () => {
-    const [data, setData] = useState<FileSystemItem[]>(initialData)
+    const {filesOrFolders, setFilesOrFolders}=useFilesOrFolders();
     const [selectedItems, setSelectedItems] = useState<string[]>([])
     const [searchTerm, setSearchTerm] = useState('')
     const [allExpanded, setAllExpanded] = useState(false)
@@ -60,22 +37,15 @@ const FoldersTab: React.FC = () => {
         useState<FileSystemItem | null>(null)
 
     const toggleFolder = useCallback((id: string) => {
-        setData((prevData) => {
-            const toggleItem = (items: FileSystemItem[]): FileSystemItem[] => {
-                return items.map((item) => {
-                    if (item.id === id) {
-                        return { ...item, isExpanded: !item.isExpanded }
-                    }
-                    if (item.children) {
-                        return { ...item, children: toggleItem(item.children) }
-                    }
-                    return item
-                })
+        const newFilesOrFolders=filesOrFolders;
+        newFilesOrFolders.forEach((item)=>{
+            if(item.id===id){
+                item.isExpanded=!item.isExpanded;
             }
-            return toggleItem(prevData)
         })
-    }, [])
-
+        setFilesOrFolders(newFilesOrFolders)
+    }, [filesOrFolders, setFilesOrFolders])
+                
 
     const handleCheckboxChange = useCallback((id: string) => {
         setSelectedItems((prev) =>
@@ -102,9 +72,6 @@ const FoldersTab: React.FC = () => {
         })
         setSelectedItems([])
     }, [selectedItems])
-
-
-    
 
     const handleAddFolder = useCallback(() => {
         const newFolder: FileSystemItem = {
@@ -134,15 +101,13 @@ const FoldersTab: React.FC = () => {
                         onChange={() => handleCheckboxChange(item.id)}
                         className="mr-2"
                     />
-                    <div
-                        className="flex relative text-sm items-center w-full"
-                    >
+                    <div className="flex relative text-sm items-center w-full">
                         {item.type === 'folder' && (
                             <span
                                 onClick={() => toggleFolder(item.id)}
                                 className="mr-2 cursor-pointer"
                             >
-                                {(allExpanded || item.isExpanded) ? (
+                                {allExpanded || item.isExpanded ? (
                                     <RiArrowDownSLine />
                                 ) : (
                                     <RiArrowRightSLine />
@@ -192,7 +157,7 @@ const FoldersTab: React.FC = () => {
                                     hideDropdown={() =>
                                         setSelectedFolderOrFile(null)
                                     }
-                                    onDelete={()=>{
+                                    onDelete={() => {
                                         handleCheckboxChange(item.id)
                                         setSelectedFolderOrFile(null)
                                     }}
@@ -200,34 +165,33 @@ const FoldersTab: React.FC = () => {
                             )}
                     </div>
                 </div>
-                {item.type === 'folder' && (allExpanded || item.isExpanded) && item.children && (
-                    <div className="ml-6 mt-2">
-                        {item.children.map(renderItem)}
-                    </div>
-                )}
+                {item.type === 'folder' &&
+                    (allExpanded || item.isExpanded) &&
+                    item.children && (
+                        <div className="ml-6 mt-2">
+                            {item.children.map(renderItem)}
+                        </div>
+                    )}
             </div>
         ),
-        [selectedFolderOrFile, selectedItems, allExpanded, searchTerm, handleCheckboxChange, toggleFolder, handleDelete]
+        [selectedFolderOrFile, selectedItems, allExpanded, searchTerm, handleCheckboxChange, toggleFolder]
     )
 
     return (
         <div className="w-full">
             <div className="flex items-center justify-end gap-2 mb-2">
-              
-                <TooltipProvider text={allExpanded ? "Collapse" : "Expand"}>
-                    {
-                        allExpanded ? (
-                            <RiExpandDiagonal2Line
-                                onClick={() => setAllExpanded(false)}
-                                className="text-zinc-400 transition-all duration-300 text-xl w-[30px] h-[30px] cursor-pointer hover:text-violet-400 bg-zinc-800 rounded-xl p-2"
-                            />
-                        ) : (
-                            <RiCollapseDiagonalLine
-                                onClick={() => setAllExpanded(true)}
-                                className="text-zinc-400 transition-all duration-300 text-xl w-[30px] h-[30px] cursor-pointer hover:text-violet-400 bg-zinc-800 rounded-xl p-2" 
-                            />
-                        )
-                    }
+                <TooltipProvider text={allExpanded ? 'Collapse' : 'Expand'}>
+                    {allExpanded ? (
+                        <RiCollapseDiagonalLine
+                            onClick={() => setAllExpanded(true)}
+                            className="text-zinc-400 transition-all duration-300 text-xl w-[30px] h-[30px] cursor-pointer hover:text-violet-400 bg-zinc-800 rounded-xl p-2"
+                        />
+                    ) : (
+                        <RiExpandDiagonal2Line
+                            onClick={() => setAllExpanded(false)}
+                            className="text-zinc-400 transition-all duration-300 text-xl w-[30px] h-[30px] cursor-pointer hover:text-violet-400 bg-zinc-800 rounded-xl p-2"
+                        />
+                    )}
                 </TooltipProvider>
 
                 <TooltipProvider text="Add">
